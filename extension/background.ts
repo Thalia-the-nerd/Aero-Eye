@@ -409,6 +409,7 @@ const AERO_PUBLIC_ENCRYPTION_KEY = {
 var lastSubmissionError: string = null;
 
 var overrides: LabelMap = null;
+var localReasons: { [identifier: string]: { reason: string, contextUrl: string } } = {};
 
 var accepted = false;
 var installationId: string = null;
@@ -429,7 +430,7 @@ function readLocalStorage(keys: string[]) : Promise<any> {
 }
 
 var initializationPromise = (async () => {
-    var v = await readLocalStorage(['overrides', 'accepted', 'installationId', 'theme', 'disableAsymmetricEncryption', 'disableDynamicUpdates', 'dynamicBloomLastUpdate']);
+    var v = await readLocalStorage(['overrides', 'accepted', 'installationId', 'theme', 'disableAsymmetricEncryption', 'disableDynamicUpdates', 'dynamicBloomLastUpdate', 'localReasons']);
     if (!v.installationId) {
         installationId = crypto.randomUUID();
         browser.storage.local.set({ installationId: installationId });
@@ -439,6 +440,7 @@ var initializationPromise = (async () => {
 
     accepted = v.accepted
     overrides = v.overrides || {}
+    localReasons = v.localReasons || {}
     theme = v.theme;
     disableAsymmetricEncryption = v.disableAsymmetricEncryption || false;
 
@@ -743,6 +745,7 @@ browser.contextMenus.create({
 createEntityContextMenu('Mark as anti-trans', 'mark-transphobic');
 createEntityContextMenu('Mark as t-friendly', 'mark-t-friendly');
 createEntityContextMenu('Clear', 'mark-none');
+createEntityContextMenu('View reason for marking', 'view-reason');
 
 createSystemContextMenu('---', 'separator', true);
 createSystemContextMenu('Settings', 'options');
@@ -929,6 +932,14 @@ function saveLabel(response: AeroEyeSubmission) {
         if (response.secondaryIdentifier && !response.secondaryIdentifier.startsWith('twitter.com/i/user/'))
             overrides[response.secondaryIdentifier] = response.mark;
         browser.storage.local.set({ overrides: overrides });
+        
+        if (response.reason) {
+            localReasons[response.identifier] = { reason: response.reason, contextUrl: response.contextUrl || response.url };
+            if (response.secondaryIdentifier && !response.secondaryIdentifier.startsWith('twitter.com/i/user/')) {
+                localReasons[response.secondaryIdentifier] = localReasons[response.identifier];
+            }
+            browser.storage.local.set({ localReasons: localReasons });
+        }
         response.version = CURRENT_VERSION;
         response.bloomVersion = bloomFilters.bloomVersion;
         response.submissionId = (Math.random() + '').replace('.', '');
@@ -994,6 +1005,26 @@ browser.contextMenus.onClicked.addListener(function (info, tab) {
     }
     if (info.menuItemId == 'options') {
         openOptions();
+        return;
+    }
+    if (info.menuItemId == 'view-reason') {
+        const tabId = tab.id;
+        const frameId = info.frameId;
+        browser.tabs.sendMessage<AeroEyeSubmission, AeroEyeSubmission>(tabId, {
+            mark: '',
+            url: info.linkUrl,
+            tabId: tabId,
+            frameId: frameId,
+            debug: <any>overrides.debug
+        }, { frameId: frameId }, response => {
+            if (!response || !response.identifier) return;
+            const reasonData = localReasons[response.identifier] || (response.secondaryIdentifier ? localReasons[response.secondaryIdentifier] : null);
+            if (reasonData) {
+                sendMessageToContent(tabId, frameId, { displayReason: reasonData });
+            } else {
+                sendMessageToContent(tabId, frameId, { displayReason: { reason: "No local reason found for this profile.", contextUrl: "" } });
+            }
+        });
         return;
     }
 

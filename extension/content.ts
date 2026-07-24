@@ -953,6 +953,11 @@ browser.runtime.onMessage.addListener<AeroEyeMessage, AeroEyeSubmission>((messag
         updateAllLabels(true);
         return undefined;
     }
+    
+    if (message.displayReason) {
+        alert(`Reason: ${message.displayReason.reason}\nContext URL: ${message.displayReason.contextUrl}`);
+        return undefined;
+    }
 
     message.contextPage = window.location.href;
     const originalTarget = lastRightClickedElement;
@@ -977,6 +982,12 @@ browser.runtime.onMessage.addListener<AeroEyeMessage, AeroEyeSubmission>((messag
         message.identifier = identifier;
         if (identifier.startsWith('facebook.com/'))
             message.secondaryIdentifier = getIdentifier(message.url);
+        
+        if (message.mark === 'transphobic' || message.mark === 't-friendly') {
+            const userReason = prompt('Why are you marking this?');
+            message.reason = userReason || '';
+            message.contextUrl = window.location.href;
+        }
         
 
         var snippet = getSnippet(target);

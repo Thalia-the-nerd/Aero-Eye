@@ -22,6 +22,8 @@ interface AeroEyeSubmission {
     snippet?: string
     trimmed?: boolean
     bloomVersion?: number
+    reason?: string
+    contextUrl?: string
 }
 interface AeroEyeCommand {
     acceptClicked?: boolean
@@ -34,11 +36,12 @@ interface AeroEyeCommand {
     confirmSetLabel?: LabelKind
     confirmSetUrl?: string
     badIdentifierReason?: BadIdentifierReason
+    displayReason?: { reason: string, contextUrl: string }
 }
 type LabelMap = { [identifier: string]: LabelKind };
 
 interface AeroEyeMessage extends AeroEyeSubmission, AeroEyeCommand {
 }
 
-type ContextMenuCommand = 'mark-t-friendly' | 'mark-transphobic' | 'mark-none' | 'help' | 'options' | 'separator';
+type ContextMenuCommand = 'mark-t-friendly' | 'mark-transphobic' | 'mark-none' | 'help' | 'options' | 'separator' | 'view-reason';
 type BadIdentifierReason = 'SN' | 'AR';
