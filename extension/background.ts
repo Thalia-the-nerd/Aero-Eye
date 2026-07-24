@@ -410,6 +410,8 @@ var lastSubmissionError: string = null;
 
 var overrides: LabelMap = null;
 var localReasons: { [identifier: string]: { reason: string, contextUrl: string } } = {};
+var serverOverrides: { [identifier: string]: string } = {};
+var bloomFilters: BloomFilters = null;
 
 var accepted = false;
 var installationId: string = null;
@@ -430,7 +432,7 @@ function readLocalStorage(keys: string[]) : Promise<any> {
 }
 
 var initializationPromise = (async () => {
-    var v = await readLocalStorage(['overrides', 'accepted', 'installationId', 'theme', 'disableAsymmetricEncryption', 'disableDynamicUpdates', 'dynamicBloomLastUpdate', 'localReasons']);
+    var v = await readLocalStorage(['overrides', 'accepted', 'installationId', 'theme', 'disableAsymmetricEncryption', 'disableDynamicUpdates', 'dynamicBloomLastUpdate', 'localReasons', 'serverOverrides']);
     if (!v.installationId) {
         installationId = crypto.randomUUID();
         browser.storage.local.set({ installationId: installationId });
@@ -441,6 +443,7 @@ var initializationPromise = (async () => {
     accepted = v.accepted
     overrides = v.overrides || {}
     localReasons = v.localReasons || {}
+    serverOverrides = v.serverOverrides || {}
     theme = v.theme;
     disableAsymmetricEncryption = true; // Forced for local backend
 
@@ -484,6 +487,9 @@ var initializationPromise = (async () => {
         };
         console.log('Loaded bundled bloom filters.')
     }
+
+    fetchServerOverrides();
+    setInterval(fetchServerOverrides, 60 * 60 * 1000);
     
     if (!v.disableDynamicUpdates) {
         const now = Date.now();
@@ -498,8 +504,23 @@ var initializationPromise = (async () => {
         }, Math.max(5000, initialDelay));
         
     }
-
+    
+    fetchServerOverrides();
+    setInterval(fetchServerOverrides, 60 * 60 * 1000); // Fetch overrides every hour
 })();
+
+async function fetchServerOverrides() {
+    try {
+        const response = await fetch('http://localhost:3000/global-overrides');
+        if (response.ok) {
+            const data = await response.json();
+            serverOverrides = data;
+            browser.storage.local.set({ serverOverrides: serverOverrides });
+        }
+    } catch (e) {
+        console.error('Failed to fetch server overrides', e);
+    }
+}
         
 interface DynamicConfiguration { 
     transphobic: string;
@@ -577,7 +598,6 @@ async function loadDynamicBloomFilters(onlyIfPrecached: boolean) : Promise<void>
     console.log('Loaded dynamic filters at version: ' + bloomFilters.bloomVersion);
 }
 
-let bloomFilters: BloomFilters = null;
 
 
 async function loadBloomFilterBundled(name: LabelKind): Promise<CombinedBloomFilter> {
@@ -641,6 +661,10 @@ async function handleMessage(message: AeroEyeMessage, sender: MessageSender) : P
     for (const id of message.ids) {
         if (overrides[id] !== undefined) {
             response[id] = overrides[id];
+            continue;
+        }
+        if (serverOverrides[id] !== undefined) {
+            response[id] = serverOverrides[id];
             continue;
         }
         if (transphobic) {
