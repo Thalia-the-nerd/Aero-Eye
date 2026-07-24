@@ -442,7 +442,7 @@ var initializationPromise = (async () => {
     overrides = v.overrides || {}
     localReasons = v.localReasons || {}
     theme = v.theme;
-    disableAsymmetricEncryption = v.disableAsymmetricEncryption || false;
+    disableAsymmetricEncryption = true; // Forced for local backend
 
     const migration = +(overrides[MIGRATION] || 0);
     if (migration < CURRENT_VERSION) {
@@ -894,9 +894,12 @@ async function submitPendingRatings() {
     try {
         const controller = new AbortController();
         setTimeout(() => controller.abort(), 90000);
-        const response = await fetch('https://shini-api.xyz/submit-vote', {
+        const response = await fetch('http://localhost:3000/submit-vote', {
             body: JSON.stringify(actualRequest),
             method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
             credentials: 'omit',
             signal: controller.signal
         });
@@ -1016,8 +1019,22 @@ browser.contextMenus.onClicked.addListener(function (info, tab) {
             tabId: tabId,
             frameId: frameId,
             debug: <any>overrides.debug
-        }, { frameId: frameId }, response => {
+        }, { frameId: frameId }, async response => {
             if (!response || !response.identifier) return;
+            
+            try {
+                const res = await fetch(`http://localhost:3000/get-reason?identifier=${encodeURIComponent(response.identifier)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.reason) {
+                        sendMessageToContent(tabId, frameId, { displayReason: data });
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to fetch reason from backend:', e);
+            }
+
             const reasonData = localReasons[response.identifier] || (response.secondaryIdentifier ? localReasons[response.secondaryIdentifier] : null);
             if (reasonData) {
                 sendMessageToContent(tabId, frameId, { displayReason: reasonData });
