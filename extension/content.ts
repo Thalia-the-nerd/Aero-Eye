@@ -8,6 +8,7 @@ if (hostname == 'mobile.twitter.com' || hostname == 'mobile.x.com' || hostname =
 if (hostname.endsWith('.reddit.com')) hostname = 'reddit.com';
 if (hostname.endsWith('.facebook.com')) hostname = 'facebook.com';
 if (hostname.endsWith('.youtube.com')) hostname = 'youtube.com';
+if (hostname.endsWith('.linkedin.com')) hostname = 'linkedin.com';
 
 var myself: string = null;
 var isMastodon: boolean = null;
@@ -66,6 +67,13 @@ function fixupSiteStyles() {
         addStyleSheet(`
             .author { color: #369 !important;}
         `);
+    } else if (hostname == 'linkedin.com') {
+        const miniProfile = document.querySelector('.global-nav__me-content a');
+        if (miniProfile) {
+            const href = (<HTMLAnchorElement>miniProfile).href;
+            const match = href.match(/linkedin\.com\/in\/([^\/\?]+)/);
+            if (match) myself = 'linkedin.com/in/' + match[1].toLowerCase();
+        }
     }
 }
 
@@ -624,6 +632,15 @@ function getIdentifierFromURLIgnoreBridges(url: URL): string {
         const isGroup = p.startsWith('/groups/');
         if (isGroup && p.includes('/user/')) return 'facebook.com/' + pathArray[4]; // fb.com/groups/.../user/...
         return 'facebook.com/' + (fbId || getPartialPath(p, isGroup ? 2 : 1).substring(1));
+    } else if (domainIs(host, 'linkedin.com')) {
+        if (url.pathname.startsWith('/in/')) {
+            const username = pathArray[2];
+            if (username) return 'linkedin.com/in/' + username.toLowerCase();
+        } else if (url.pathname.startsWith('/company/')) {
+            const companyname = pathArray[2];
+            if (companyname) return 'linkedin.com/company/' + companyname.toLowerCase();
+        }
+        return null;
     } else if (domainIs(host, 'reddit.com')) {
         const pathname = url.pathname.replace('/u/', '/user/');
         if (!pathname.startsWith('/user/') && !pathname.startsWith('/r/')) return null;
@@ -784,6 +801,8 @@ function getSnippetImpl(node: HTMLElement) : HTMLElement {
         return getMatchingAncestorByCss(node, '.post-content');
     if (hostname == 'medium.com')
         return getMatchingAncestorByCss(node, '.streamItem, .streamItemConversationItem');
+    if (hostname == 'linkedin.com')
+        return getMatchingAncestorByCss(node, '.feed-shared-update-v2, .comments-comment-item, .search-result__info, .search-entity');
     if (hostname == 'youtube.com')
         return getMatchingAncestorByCss(node, 'ytd-comment-renderer, ytd-video-secondary-info-renderer');
     if (hostname == 'tumblr.com')
