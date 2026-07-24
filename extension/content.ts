@@ -11,7 +11,7 @@ if (hostname.endsWith('.youtube.com')) hostname = 'youtube.com';
 
 var myself: string = null;
 var isMastodon: boolean = null;
-const colorLinks = !!(<any>window).shinigamiEyesColorLinks;
+const colorLinks = !!(<any>window).aeroEyeColorLinks;
 
 function fixupSiteStyles() {
     if (hostname == 'facebook.com') {
@@ -29,13 +29,13 @@ function fixupSiteStyles() {
         `);
     } else if (domainIs(hostname, 'tumblr.com')) {
         addStyleSheet(`
-            .assigned-label-transphobic { outline: 2px solid var(--ShinigamiEyesTransphobic) !important; }
-            .assigned-label-t-friendly { outline: 1px solid var(--ShinigamiEyesTFriendly) !important; }
+            .assigned-label-transphobic { outline: 2px solid var(--AeroEyeTransphobic) !important; }
+            .assigned-label-t-friendly { outline: 1px solid var(--AeroEyeTFriendly) !important; }
         `);
     } else if (hostname == 'rationalwiki.org' || domainIs(hostname, 'wikipedia.org')) {
         addStyleSheet(`
-            .assigned-label-transphobic { outline: 1px solid var(--ShinigamiEyesTransphobic) !important; }
-            .assigned-label-t-friendly { outline: 1px solid var(--ShinigamiEyesTFriendly) !important; }
+            .assigned-label-transphobic { outline: 1px solid var(--AeroEyeTransphobic) !important; }
+            .assigned-label-t-friendly { outline: 1px solid var(--AeroEyeTFriendly) !important; }
             .vector-page-toolbar .has-assigned-label { outline-width: 2px !important; }
         `);
     } else if (hostname == 'twitter.com') {
@@ -259,11 +259,11 @@ function solvePendingLabels() {
     var uniqueIdentifiers = Array.from(new Set(labelsToSolve.map(x => x.identifier)));
     var tosolve = labelsToSolve;
     labelsToSolve = [];
-    browser.runtime.sendMessage<ShinigamiEyesCommand, LabelMap>({ ids: uniqueIdentifiers, myself: <string>myself }, (response: LabelMap) => {
+    browser.runtime.sendMessage<AeroEyeCommand, LabelMap>({ ids: uniqueIdentifiers, myself: <string>myself }, (response: LabelMap) => {
         const theme = response[':theme'];
         if (theme != currentlyAppliedTheme) {
-            if (currentlyAppliedTheme) document.body.classList.remove('shinigami-eyes-theme-' + currentlyAppliedTheme);
-            if (theme) document.body.classList.add('shinigami-eyes-theme-' + theme);
+            if (currentlyAppliedTheme) document.body.classList.remove('aero-eye-theme-' + currentlyAppliedTheme);
+            if (theme) document.body.classList.add('aero-eye-theme-' + theme);
             currentlyAppliedTheme = theme;
         }
         for (const item of tosolve) {
@@ -863,7 +863,7 @@ function displayConfirmation(identifier: string, label: LabelKind, badIdentifier
         else if (badIdentifierReason == 'AR') text = 'This is an archival link, it cannot be labeled: ' + identifier;
         else text = `This item could not be labeled. Possible reasons:
  • It doesn't represent a specific user or page
- • It's not a kind of object supported by Shinigami Eyes
+ • It's not a kind of object supported by Aero Eye
 
  ${identifier || url}
 `;
@@ -893,19 +893,19 @@ function displayConfirmation(identifier: string, label: LabelKind, badIdentifier
 
 
 
-async function findTwitterNumericIdsFirefox(request: ShinigamiEyesFindTwitterNumericIdsRequest): Promise<ShinigamiEyesFindTwitterNumericIdsResponse> {
+async function findTwitterNumericIdsFirefox(request: AeroEyeFindTwitterNumericIdsRequest): Promise<AeroEyeFindTwitterNumericIdsResponse> {
     // Firefox only supports wrappedJSObject
-    return shinigamiEyesFindTwitterNumericIds(request, true);
+    return aeroEyeFindTwitterNumericIds(request, true);
 }
-async function findTwitterNumericIdsChrome(request: ShinigamiEyesFindTwitterNumericIdsRequest): Promise<ShinigamiEyesFindTwitterNumericIdsResponse> { 
+async function findTwitterNumericIdsChrome(request: AeroEyeFindTwitterNumericIdsRequest): Promise<AeroEyeFindTwitterNumericIdsResponse> { 
     // Chrome only supports world=MAIN
     request.requestId = crypto.randomUUID();
-    let resolve: (result: ShinigamiEyesFindTwitterNumericIdsResponse) => void = null;
+    let resolve: (result: AeroEyeFindTwitterNumericIdsResponse) => void = null;
     const handler = (event: MessageEvent) => {
         if (event.origin !== 'https://x.com' && event.origin !== 'https://twitter.com') return;
 
-        if (event.data && event.data.shinigamiEyesFindTwitterNumericIdsResponse) {
-            const response = <ShinigamiEyesFindTwitterNumericIdsResponse>event.data.shinigamiEyesFindTwitterNumericIdsResponse;
+        if (event.data && event.data.aeroEyeFindTwitterNumericIdsResponse) {
+            const response = <AeroEyeFindTwitterNumericIdsResponse>event.data.aeroEyeFindTwitterNumericIdsResponse;
             if (response.requestId == request.requestId) {
                 resolve(response);
             }
@@ -914,20 +914,20 @@ async function findTwitterNumericIdsChrome(request: ShinigamiEyesFindTwitterNume
     };
     try {
         window.addEventListener('message', handler);
-        const promise = new Promise<ShinigamiEyesFindTwitterNumericIdsResponse>(r => {
+        const promise = new Promise<AeroEyeFindTwitterNumericIdsResponse>(r => {
             resolve = r;
         });
         window.postMessage({
-            shinigamiEyesFindTwitterNumericIdsRequest: request
+            aeroEyeFindTwitterNumericIdsRequest: request
         });
-        var timeout = new Promise<ShinigamiEyesFindTwitterNumericIdsResponse>(resolve => setTimeout(() => resolve({ mappings: null }), 200));
+        var timeout = new Promise<AeroEyeFindTwitterNumericIdsResponse>(resolve => setTimeout(() => resolve({ mappings: null }), 200));
         return await Promise.race([promise, timeout]);
     } finally { 
         window.removeEventListener('message', handler);
     }
 }
 
-browser.runtime.onMessage.addListener<ShinigamiEyesMessage, ShinigamiEyesSubmission>((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener<AeroEyeMessage, AeroEyeSubmission>((message, sender, sendResponse) => {
 
     if (message.updateAllLabels || message.confirmSetLabel) {
         displayConfirmation(message.confirmSetIdentifier, message.confirmSetLabel, message.badIdentifierReason, message.confirmSetUrl, null);
@@ -964,14 +964,14 @@ browser.runtime.onMessage.addListener<ShinigamiEyesMessage, ShinigamiEyesSubmiss
         message.linkId = ++lastGeneratedLinkId;
 
         if (target)
-            target.setAttribute('shinigami-eyes-link-id', '' + lastGeneratedLinkId);
+            target.setAttribute('aero-eye-link-id', '' + lastGeneratedLinkId);
 
 
         if (hostname == 'twitter.com') {
             try {
                 const twitterUserName = captureRegex(identifier, /^twitter\.com\/(.*)$/)?.toLowerCase();
                 if (twitterUserName) {
-                    const request: ShinigamiEyesFindTwitterNumericIdsRequest = {
+                    const request: AeroEyeFindTwitterNumericIdsRequest = {
                         linkId: message.linkId,
                         wantIdForScreenName: twitterUserName
                     };
@@ -986,7 +986,7 @@ browser.runtime.onMessage.addListener<ShinigamiEyesMessage, ShinigamiEyesSubmiss
         }
 
         message.snippet = snippet ? snippet.outerHTML : null;
-        var debugClass = 'shinigami-eyes-debug-snippet-highlight';
+        var debugClass = 'aero-eye-debug-snippet-highlight';
 
         if (snippet && message.debug) {
             snippet.classList.add(debugClass);

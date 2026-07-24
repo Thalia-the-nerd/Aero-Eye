@@ -392,7 +392,7 @@ const ASYMMETRIC_COMMENT = "Submission data is asymmetrically encrypted (in addi
 
 
 // This key is public. Decrypting requires a different key.
-const SHINIGAMI_PUBLIC_ENCRYPTION_KEY = {
+const AERO_PUBLIC_ENCRYPTION_KEY = {
     "alg": "RSA-OAEP-256",
     "e": "AQAB",
     "ext": true,
@@ -514,7 +514,7 @@ async function checkBloomFilterUpdates() {
 
         await writeLocalStorage({ dynamicBloomLastUpdate: now });
 
-        const response = await fetch('https://raw.githubusercontent.com/shinigami-eyes/configuration/main/configuration.json' + '?random=' + Math.random(), {cache: "no-cache"})
+        const response = await fetch('https://raw.githubusercontent.com/Thalia-the-nerd/Aero-Eye/main/configuration.json' + '?random=' + Math.random(), {cache: "no-cache"})
         if (response.status != 200) throw ('HTTP status ' + response.status);
         const config = <DynamicConfiguration>await response.json();
         if (!config.bloomVersion) throw 'Missing bloomVersion';
@@ -608,7 +608,7 @@ function setAsymmetricEncryptionEnabled(enabled: boolean) {
 }
 
 
-async function handleMessage(message: ShinigamiEyesMessage, sender: MessageSender) : Promise<LabelMap> { 
+async function handleMessage(message: AeroEyeMessage, sender: MessageSender) : Promise<LabelMap> { 
     if (message.setTheme) {
         theme = message.setTheme;
         browser.storage.local.set({ theme: message.setTheme });
@@ -665,7 +665,7 @@ function testBloomFilter(bloomFilter: CombinedBloomFilter, id: string) {
     return false;
 }
 
-browser.runtime.onMessage.addListener<ShinigamiEyesMessage, ShinigamiEyesMessage | LabelMap>((message, sender, sendResponse) => {
+browser.runtime.onMessage.addListener<AeroEyeMessage, AeroEyeMessage | LabelMap>((message, sender, sendResponse) => {
     handleMessage(message, sender).then(response => sendResponse(response));
     return true;
 });
@@ -748,7 +748,7 @@ createSystemContextMenu('---', 'separator', true);
 createSystemContextMenu('Settings', 'options');
 createSystemContextMenu('Help', 'help');
 
-var uncommittedResponse: ShinigamiEyesSubmission = null;
+var uncommittedResponse: AeroEyeSubmission = null;
 
 
 
@@ -800,7 +800,7 @@ interface AsymmetricallyEncryptedData {
 }
 
 async function encryptSubmission(plainObj: any): Promise<CipherSubmission> {
-    const publicEncryptionKey = await crypto.subtle.importKey('jwk', SHINIGAMI_PUBLIC_ENCRYPTION_KEY, {
+    const publicEncryptionKey = await crypto.subtle.importKey('jwk', AERO_PUBLIC_ENCRYPTION_KEY, {
         name: 'RSA-OAEP',
         hash: 'SHA-256'
     }, false, ['encrypt']);
@@ -854,7 +854,7 @@ interface CipherSubmission {
     version: number;
 }
 
-const submissionsBeingSubmitted = new Set<ShinigamiEyesSubmission>();
+const submissionsBeingSubmitted = new Set<AeroEyeSubmission>();
 
 async function submitPendingRatings() {
     const submitted = getPendingSubmissions().filter(x => !submissionsBeingSubmitted.has(x));
@@ -881,7 +881,7 @@ async function submitPendingRatings() {
             // If something goes wrong, fall back to the old behavior (of course, we still have HTTPS).
             // While the above encryption process has been tested on both Chromium- and Gecko-based browsers,
             // the real world behavior might be different.
-            // If no significant issues appear, this catch clause will be removed in a subsequent version of Shinigami Eyes.
+            // If no significant issues appear, this catch clause will be removed in a subsequent version of Aero Eye.
             actualRequest.encryptionError = e + '';
         }
         
@@ -914,16 +914,16 @@ async function submitPendingRatings() {
 
 }
 
-function getPendingSubmissions(): ShinigamiEyesSubmission[] {
+function getPendingSubmissions(): AeroEyeSubmission[] {
     return <any>overrides[PENDING_SUBMISSIONS];
 }
 
 
-function saveLabel(response: ShinigamiEyesSubmission) {
+function saveLabel(response: AeroEyeSubmission) {
     if (accepted) {
         if (!getPendingSubmissions()) {
             overrides[PENDING_SUBMISSIONS] = <any>Object.getOwnPropertyNames(overrides)
-                .map<ShinigamiEyesSubmission>(x => { return { identifier: x, label: overrides[x] } });
+                .map<AeroEyeSubmission>(x => { return { identifier: x, label: overrides[x] } });
         }
         overrides[response.identifier] = response.mark;
         if (response.secondaryIdentifier && !response.secondaryIdentifier.startsWith('twitter.com/i/user/'))
@@ -981,10 +981,10 @@ function getURL(path: string) {
 }
 
 
-function sendMessageToContent(tabId: number, frameId: number, message: ShinigamiEyesCommand) {
+function sendMessageToContent(tabId: number, frameId: number, message: AeroEyeCommand) {
     const options = frameId === null ? undefined : { frameId: frameId };
     console.log(message);
-    browser.tabs.sendMessage<ShinigamiEyesCommand, void>(tabId, message, options);
+    browser.tabs.sendMessage<AeroEyeCommand, void>(tabId, message, options);
 }
 
 browser.contextMenus.onClicked.addListener(function (info, tab) {
@@ -1002,7 +1002,7 @@ browser.contextMenus.onClicked.addListener(function (info, tab) {
 
     var label = <LabelKind>info.menuItemId.substring('mark-'.length);
     if (label == 'none') label = '';
-    browser.tabs.sendMessage<ShinigamiEyesSubmission, ShinigamiEyesSubmission>(tabId, {
+    browser.tabs.sendMessage<AeroEyeSubmission, AeroEyeSubmission>(tabId, {
         mark: label,
         url: info.linkUrl,
         tabId: tabId,

@@ -7,7 +7,7 @@ interface LabelToSolve {
     identifier: string
 }
 type LabelKind = 't-friendly' | 'transphobic' | 'none' | '' | 'bad-identifier';
-interface ShinigamiEyesSubmission {
+interface AeroEyeSubmission {
     mark?: LabelKind
     url?: string
     tabId?: number
@@ -23,7 +23,7 @@ interface ShinigamiEyesSubmission {
     trimmed?: boolean
     bloomVersion?: number
 }
-interface ShinigamiEyesCommand {
+interface AeroEyeCommand {
     acceptClicked?: boolean
     myself?: string
     ids?: string[]
@@ -37,7 +37,7 @@ interface ShinigamiEyesCommand {
 }
 type LabelMap = { [identifier: string]: LabelKind };
 
-interface ShinigamiEyesMessage extends ShinigamiEyesSubmission, ShinigamiEyesCommand {
+interface AeroEyeMessage extends AeroEyeSubmission, AeroEyeCommand {
 }
 
 type ContextMenuCommand = 'mark-t-friendly' | 'mark-transphobic' | 'mark-none' | 'help' | 'options' | 'separator';

@@ -1,4 +1,4 @@
-var { shinigamiEyesFindTwitterNumericIds } = (function () {
+var { aeroEyeFindTwitterNumericIds } = (function () {
 
     class Queue<T> {
         pending: T[] = [];
@@ -108,8 +108,8 @@ var { shinigamiEyesFindTwitterNumericIds } = (function () {
         return false;
     }
 
-    function shinigamiEyesFindTwitterNumericIds(request: ShinigamiEyesFindTwitterNumericIdsRequest, isFirefox: boolean): ShinigamiEyesFindTwitterNumericIdsResponse {
-        const link = <HTMLAnchorElement>document.querySelector("[shinigami-eyes-link-id='" + request.linkId + "']");
+    function aeroEyeFindTwitterNumericIds(request: AeroEyeFindTwitterNumericIdsRequest, isFirefox: boolean): AeroEyeFindTwitterNumericIdsResponse {
+        const link = <HTMLAnchorElement>document.querySelector("[aero-eye-link-id='" + request.linkId + "']");
 
         let article: Node = link ? (link.closest('article') ?? link) : document.body;
         //console.log('Starting exploration from: ');
@@ -122,17 +122,17 @@ var { shinigamiEyesFindTwitterNumericIds } = (function () {
         return { mappings: result.mappings };
     }
 
-    return { shinigamiEyesFindTwitterNumericIds };
+    return { aeroEyeFindTwitterNumericIds };
 
 })();
 
 
-interface ShinigamiEyesFindTwitterNumericIdsRequest {
+interface AeroEyeFindTwitterNumericIdsRequest {
     linkId: number;
     wantIdForScreenName: string;
     requestId?: string;
 }
-interface ShinigamiEyesFindTwitterNumericIdsResponse {
+interface AeroEyeFindTwitterNumericIdsResponse {
     mappings: TwitterMapping[];
     requestId?: string;
 }
@@ -141,18 +141,18 @@ window.addEventListener(
     "message",
     (event) => {
         if (event.origin !== 'https://x.com' && event.origin !== 'https://twitter.com') return;
-        const request = <ShinigamiEyesFindTwitterNumericIdsRequest>event.data?.shinigamiEyesFindTwitterNumericIdsRequest;
+        const request = <AeroEyeFindTwitterNumericIdsRequest>event.data?.aeroEyeFindTwitterNumericIdsRequest;
         if (request) {
-            let result: ShinigamiEyesFindTwitterNumericIdsResponse = null;
+            let result: AeroEyeFindTwitterNumericIdsResponse = null;
             try {
-                result = shinigamiEyesFindTwitterNumericIds(request, false);
+                result = aeroEyeFindTwitterNumericIds(request, false);
             } catch (e) {
                 console.warn(e);
             }
             result ??= <any>{};
             result.requestId = request.requestId;
             window.postMessage({
-                shinigamiEyesFindTwitterNumericIdsResponse: result
+                aeroEyeFindTwitterNumericIdsResponse: result
             });
 
         }

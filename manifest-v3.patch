@@ -40,7 +40,7 @@ diff --git a/extension/content.ts b/extension/content.ts
 index 8d10932..e7d76ea 100644
 --- a/extension/content.ts
 +++ b/extension/content.ts
-@@ -929,7 +929,7 @@ browser.runtime.onMessage.addListener<ShinigamiEyesMessage, ShinigamiEyesSubmiss
+@@ -929,7 +929,7 @@ browser.runtime.onMessage.addListener<AeroEyeMessage, AeroEyeSubmiss
                          linkId: message.linkId,
                          wantIdForScreenName: twitterUserName
                      };
@@ -57,8 +57,8 @@ index 81c6cad..9827ac1 100644
  {
 -    "manifest_version": 2,
 +    "manifest_version": 3,
-     "name": "Shinigami Eyes",
-     "author": "Shinigami Eyes",
+     "name": "Aero Eye",
+     "author": "Aero Eye",
      "version": "1.0.33",
 @@ -118,16 +118,15 @@
                  "https://x.com/*",

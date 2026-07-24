@@ -1,1 +1,1 @@
-(<any>window).shinigamiEyesColorLinks = true;
+(<any>window).aeroEyeColorLinks = true;

@@ -1,33 +1,33 @@
 body {
-   --ShinigamiEyesTFriendly: #77B91E;
-   --ShinigamiEyesTransphobic: #991515;
+   --AeroEyeTFriendly: #77B91E;
+   --AeroEyeTransphobic: #991515;
 }
 
-.shinigami-eyes-theme-green-red-max {
-   --ShinigamiEyesTFriendly: #00FF00;
-   --ShinigamiEyesTransphobic: #FF0000;
+.aero-eye-theme-green-red-max {
+   --AeroEyeTFriendly: #00FF00;
+   --AeroEyeTransphobic: #FF0000;
 }
 
-.shinigami-eyes-theme-purple-yellow {
-   --ShinigamiEyesTFriendly: rgb(153, 0, 255);
-   --ShinigamiEyesTransphobic: rgb(179, 152, 0);
+.aero-eye-theme-purple-yellow {
+   --AeroEyeTFriendly: rgb(153, 0, 255);
+   --AeroEyeTransphobic: rgb(179, 152, 0);
 }
 
-.shinigami-eyes-theme-cyan-orange {
-   --ShinigamiEyesTFriendly: rgb(98, 161, 197);
-   --ShinigamiEyesTransphobic: #FB6A4A;
+.aero-eye-theme-cyan-orange {
+   --AeroEyeTFriendly: rgb(98, 161, 197);
+   --AeroEyeTransphobic: #FB6A4A;
 }
 
-.assigned-label-transphobic, a.assigned-label-transphobic { color: var(--ShinigamiEyesTransphobic) !important; }
-.assigned-label-t-friendly, a.assigned-label-t-friendly { color: var(--ShinigamiEyesTFriendly) !important; }
+.assigned-label-transphobic, a.assigned-label-transphobic { color: var(--AeroEyeTransphobic) !important; }
+.assigned-label-t-friendly, a.assigned-label-t-friendly { color: var(--AeroEyeTFriendly) !important; }
 
 .has-assigned-label * { color: inherit !important; }
-.shinigami-eyes-debug-snippet-highlight {
+.aero-eye-debug-snippet-highlight {
      outline: 2px dashed darkorchid !important;
      background-color: darkorchid !important;
      color: white !important;
  }
- .shinigami-eyes-debug-snippet-highlight:after {
+ .aero-eye-debug-snippet-highlight:after {
     content: " ";
     pointer-events: none;
     z-index: 1000000;

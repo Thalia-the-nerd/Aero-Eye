@@ -11,7 +11,7 @@ browser.storage.local.get(['theme'], obj => {
         'cyan-orange',
     ].map(x => {
         themeSettingsContainer.insertAdjacentHTML('beforeend', `
-        <label class="shinigami-eyes-theme shinigami-eyes-theme-${x}">
+        <label class="aero-eye-theme aero-eye-theme-${x}">
         <input type="radio" name="selected-theme" ${x == theme ? 'checked' : ''} data-theme="${x}">
         <span class="assigned-label-t-friendly">T-Friendly</span>,
         <span class="assigned-label-transphobic">Anti-trans</span>,
@@ -24,13 +24,13 @@ browser.storage.local.get(['theme'], obj => {
 
 document.getElementById('save-button').addEventListener('click', async () => {
     var theme = (<HTMLInputElement>
-        [...document.querySelectorAll('.shinigami-eyes-theme input')]
+        [...document.querySelectorAll('.aero-eye-theme input')]
             .filter(x => (<HTMLInputElement>x).checked)[0]
     ).dataset.theme;
-    browser.runtime.sendMessage(<ShinigamiEyesCommand>{ closeCallingTab: true, setTheme: theme }, () => { });
+    browser.runtime.sendMessage(<AeroEyeCommand>{ closeCallingTab: true, setTheme: theme }, () => { });
 });
 
 
 document.getElementById('cancel-button').addEventListener('click', async () => {
-    browser.runtime.sendMessage(<ShinigamiEyesCommand>{ closeCallingTab: true }, () => { });
+    browser.runtime.sendMessage(<AeroEyeCommand>{ closeCallingTab: true }, () => { });
 });
