@@ -1047,11 +1047,23 @@ browser.contextMenus.onClicked.addListener(function (info, tab) {
             if (!response || !response.identifier) return;
             
             try {
-                const res = await fetch(`http://localhost:3000/get-reason?identifier=${encodeURIComponent(response.identifier)}`);
+                const res = await fetch(`http://localhost:3000/get-details?identifier=${encodeURIComponent(response.identifier)}`);
                 if (res.ok) {
                     const data = await res.json();
-                    if (data && data.reason) {
-                        sendMessageToContent(tabId, frameId, { displayReason: data });
+                    if (data && data.tallies) {
+                        let displayText = 'Vote Tallies:\n';
+                        for (const label of Object.keys(data.tallies)) {
+                            displayText += `- ${label}: ${data.tallies[label]}\n`;
+                        }
+                        if (data.reasons && data.reasons.length > 0) {
+                            displayText += '\nReasons:\n';
+                            for (const r of data.reasons) {
+                                displayText += `- "${r.reason}" (URL: ${r.contextUrl || 'N/A'})\n`;
+                            }
+                        } else {
+                            displayText += '\nNo reasons provided.';
+                        }
+                        sendMessageToContent(tabId, frameId, { displayReason: displayText });
                         return;
                     }
                 }
@@ -1061,9 +1073,9 @@ browser.contextMenus.onClicked.addListener(function (info, tab) {
 
             const reasonData = localReasons[response.identifier] || (response.secondaryIdentifier ? localReasons[response.secondaryIdentifier] : null);
             if (reasonData) {
-                sendMessageToContent(tabId, frameId, { displayReason: reasonData });
+                sendMessageToContent(tabId, frameId, { displayReason: `Reason: ${reasonData.reason}\nContext URL: ${reasonData.contextUrl}` });
             } else {
-                sendMessageToContent(tabId, frameId, { displayReason: { reason: "No local reason found for this profile.", contextUrl: "" } });
+                sendMessageToContent(tabId, frameId, { displayReason: "No local reason found for this profile." });
             }
         });
         return;

@@ -955,7 +955,7 @@ browser.runtime.onMessage.addListener<AeroEyeMessage, AeroEyeSubmission>((messag
     }
     
     if (message.displayReason) {
-        alert(`Reason: ${message.displayReason.reason}\nContext URL: ${message.displayReason.contextUrl}`);
+        alert(message.displayReason);
         return undefined;
     }
 

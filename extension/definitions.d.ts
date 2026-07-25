@@ -36,7 +36,7 @@ interface AeroEyeCommand {
     confirmSetLabel?: LabelKind
     confirmSetUrl?: string
     badIdentifierReason?: BadIdentifierReason
-    displayReason?: { reason: string, contextUrl: string }
+    displayReason?: string
 }
 type LabelMap = { [identifier: string]: LabelKind };
 
